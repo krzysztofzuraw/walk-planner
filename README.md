@@ -18,3 +18,18 @@ Builds a static copy of your site to the `build/` folder.
 Your app is ready to be deployed!
 
 **For the best production performance:** Add a build bundler plugin like [@snowpack/plugin-webpack](https://github.com/snowpackjs/snowpack/tree/main/plugins/plugin-webpack) or [snowpack-plugin-rollup-bundle](https://github.com/ParamagicDev/snowpack-plugin-rollup-bundle) to your `snowpack.config.json` config file.
+
+### What to do before running npm start
+
+1. Generate cert
+
+```shell
+brew install mkcert
+mkcert -install && mkcert -key-file snowpack.key -cert-file snowpack.crt localhost
+```
+
+2. Create `.env` file with your `SNOWPACK_PUBLIC_MAPBOX_ACCESS_TOKEN` in root folder on this repository
+
+```
+SNOWPACK_PUBLIC_MAPBOX_ACCESS_TOKEN=<YOUR_TOKEN>
+```
