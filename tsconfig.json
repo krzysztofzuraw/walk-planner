@@ -1,5 +1,5 @@
 {
-  "include": ["src", "types"],
+  "extends": "@tsconfig/svelte/tsconfig.json",
   "compilerOptions": {
     "module": "esnext",
     "target": "esnext",
@@ -23,6 +23,8 @@
     "useDefineForClassFields": true,
     "allowSyntheticDefaultImports": true,
     "importsNotUsedAsValues": "error",
-    "types": ["svelte", "@types/snowpack-env"],
-  }
+    "types": ["svelte","@types/snowpack-env"],
+  },
+  "include": ["src/**/*", "types/*", "node_modules/**/*"],
+  "exclude": ["node_modules"]
 }
