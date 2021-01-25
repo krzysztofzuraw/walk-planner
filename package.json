@@ -23,7 +23,10 @@
     "typescript": "4.1.3"
   },
   "dependencies": {
+    "@turf/turf": "6.3.0",
     "mapbox-gl": "2.0.1",
-    "svelte": "3.31.2"
+    "svelte": "3.31.2",
+    "topojson-server": "3.0.1",
+    "topojson-simplify": "3.0.3"
   }
 }

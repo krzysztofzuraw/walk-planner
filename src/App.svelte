@@ -2,10 +2,38 @@
   import mapboxgl from "mapbox-gl";
   import { onMount, onDestroy } from "svelte";
   import Geolocation from "svelte-geolocation";
+  import { coordAll, featureCollection, point } from "@turf/turf";
+
   const { SNOWPACK_PUBLIC_MAPBOX_ACCESS_TOKEN } = import.meta.env;
 
   let mapRef: mapboxgl.Map;
   let getPosition = false;
+  let userLocation: number[] = [];
+  const waypoints = featureCollection([]);
+  const nothing = featureCollection([]);
+
+  const createWaypoint = (coords: any) => {
+    const pt = point([coords.lng, coords.lat], {
+      orderTime: Date.now(),
+      key: Math.random(),
+    });
+    waypoints.features.push(pt);
+  };
+
+  const updateWaypoints = (geojson: any) => {
+    //@ts-ignore
+    mapRef.getSource("waypoints").setData(geojson);
+  };
+
+  const generateQueryURL = () => {
+    const coordinates = [userLocation, coordAll(waypoints), userLocation];
+    const distributions = [];
+    const end = [userLocation];
+
+    return `https://api.mapbox.com/optimized-trips/v1/mapbox/walking/${coordinates.join(
+      ";"
+    )}&overview=full&steps=true&geometries=geojson&source=first&access_token=${SNOWPACK_PUBLIC_MAPBOX_ACCESS_TOKEN}`;
+  };
 
   onMount(async () => {
     mapboxgl.accessToken = SNOWPACK_PUBLIC_MAPBOX_ACCESS_TOKEN;
@@ -23,18 +51,51 @@
         type: "symbol",
         source: {
           type: "geojson",
-          data: {
-            type: "FeatureCollection",
-            features: [],
-          },
+          //@ts-ignore
+          data: waypoints,
+        },
+        layout: {
+          "icon-allow-overlap": true,
+          "icon-ignore-placement": true,
+          "icon-image": "marker-15",
         },
       });
+
+      mapRef.addSource("route", {
+        type: "geojson",
+        //@ts-ignore
+        data: nothing,
+      });
+
+      mapRef.addLayer(
+        {
+          id: "routeline-active",
+          type: "line",
+          source: "route",
+          layout: {
+            "line-join": "round",
+            "line-cap": "round",
+          },
+          paint: {
+            "line-color": "#3887be",
+            "line-width": ["interpolate", ["linear"], ["zoom"], 12, 3, 22, 12],
+          },
+        },
+        "waterway-label"
+      );
     });
 
     mapRef.on("click", (event) => {
-      new mapboxgl.Marker().setLngLat(event.lngLat).addTo(mapRef);
+      createWaypoint(mapRef.unproject(event.point));
+      updateWaypoints(waypoints);
     });
   });
+
+  const handleGenerateClick = () => {
+    fetch(generateQueryURL(), {
+      method: "GET",
+    }).then((res) => console.log(res));
+  };
 </script>
 
 <div id="map" class="h-screen w-screen" />
@@ -64,6 +125,8 @@
             lng: e.detail.coords.longitude,
           })
           .addTo(mapRef);
+
+        userLocation = [e.detail.coords.latitude, e.detail.coords.longitude];
       }
     }}
     let:coords
@@ -88,4 +151,5 @@
       {/if}
     {/if}
   </Geolocation>
+  <button on:click={handleGenerateClick}>Generate</button>
 </div>
